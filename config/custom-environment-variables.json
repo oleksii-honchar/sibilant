@@ -3,7 +3,7 @@
     "environment": "NODE_ENV",
     "logLevel": "LOG_LEVEL"
   },
-  "ai-providers": {
+  "providers": {
     "open-ai": {
       "apiKey": "OPENAI_API_KEY"
     }

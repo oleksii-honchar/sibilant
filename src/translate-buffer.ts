@@ -22,17 +22,114 @@ import { promisify } from 'util';
 const execAsync = promisify(exec);
 
 interface OpenAIConfig {
+  type: 'cloud';
+  title: string;
   apiKey: string;
   model: string;
 }
 
-interface AIConfig {
-  'open-ai': OpenAIConfig;
+interface LocalTranslateConfig {
+  type: 'local';
+  title: string;
+  command: string;
+  args: string[];
+}
+
+type ProviderConfig = OpenAIConfig | LocalTranslateConfig;
+
+interface ProvidersConfig {
+  [key: string]: ProviderConfig;
+}
+
+interface TranslationConfig {
+  provider: string;
+  targetLanguage: string;
 }
 
 interface AppConfig {
-  'ai-providers': AIConfig;
-  targetLanguage: string;
+  providers: ProvidersConfig;
+  translation: TranslationConfig;
+}
+
+interface TranslationProvider {
+  translate(text: string, targetLanguage: string): Promise<string>;
+}
+
+class OpenAITranslationProvider implements TranslationProvider {
+  private readonly config: OpenAIConfig;
+
+  constructor(config: OpenAIConfig) {
+    this.config = config;
+  }
+
+  async translate(text: string, targetLanguage: string): Promise<string> {
+    const client = new OpenAI({
+      apiKey: this.config.apiKey,
+    });
+
+    const response = await client.chat.completions.create({
+      model: this.config.model,
+      messages: [
+        {
+          role: "user",
+          content: `Translate the following text to [${targetLanguage}]: ${text}`,
+        },
+      ],
+    });
+
+    const translation = response.choices[0].message?.content?.trim();
+    if (!translation) {
+      throw new Error('No translation found in the response');
+    }
+
+    return translation;
+  }
+}
+
+class LocalTranslationProvider implements TranslationProvider {
+  private readonly config: LocalTranslateConfig;
+
+  constructor(config: LocalTranslateConfig) {
+    this.config = config;
+  }
+
+  async translate(text: string, targetLanguage: string): Promise<string> {
+    try {
+      const args = this.config.args.map(arg =>
+        arg.replace('{text}', text)
+          .replace('{targetLanguage}', targetLanguage)
+      );
+
+      const { stdout, stderr } = await execAsync(`${this.config.command} ${args.join(' ')}`);
+
+      if (stderr) {
+        console.warn(`Translation CLI (${this.config.title}) stderr:`, stderr);
+      }
+
+      return stdout.trim();
+    } catch (error) {
+      console.error(`Error executing translation CLI (${this.config.title}):`, error);
+      throw new Error(`Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+}
+
+function createTranslationProvider(translationConfig: TranslationConfig): TranslationProvider {
+  const providers = config.get<ProvidersConfig>('providers');
+  const provider = providers[translationConfig.provider];
+
+  if (!provider) {
+    throw new Error(`Provider '${translationConfig.provider}' not found`);
+  }
+
+  switch (translationConfig.provider) {
+    case 'open-ai':
+      return new OpenAITranslationProvider(provider as OpenAIConfig);
+    case 'local-translate':
+      return new LocalTranslationProvider(provider as LocalTranslateConfig);
+    default:
+      throw new Error(`Unsupported provider: ${translationConfig.provider}`);
+  }
 }
 
 async function showNotification(title: string, message: string) {
@@ -65,42 +162,17 @@ async function showNotification(title: string, message: string) {
 
 async function translateText() {
   try {
-    // Play start sound (subtle)
     await execAsync('afplay /System/Library/Sounds/Purr.aiff');
 
-    const openaiConfig = config.get<OpenAIConfig>('ai-providers.open-ai');
-    const targetLanguage = config.get<string>('targetLanguage');
-
-    if (!openaiConfig.apiKey) {
-      throw new Error('OpenAI API key is not configured');
-    }
-
+    const translationConfig = config.get<TranslationConfig>('translation');
     const text = await clipboardy.read();
-
-    const client = new OpenAI({
-      apiKey: openaiConfig.apiKey,
-    });
-
-    const response = await client.chat.completions.create({
-      model: openaiConfig.model,
-      messages: [
-        {
-          role: "user",
-          content: `Translate the following text to [${targetLanguage}]: ${text}`,
-        },
-      ],
-    });
-
-    const translation = response.choices[0].message?.content?.trim();
-    if (!translation) {
-      throw new Error('No translation found in the response');
-    }
+    const provider = createTranslationProvider(translationConfig);
+    const translation = await provider.translate(text, translationConfig.targetLanguage);
 
     await clipboardy.write(translation);
     console.log('Translation copied to clipboard:', translation);
 
     await execAsync('afplay /System/Library/Sounds/Hero.aiff');
-
     await showNotification('Translation Complete', translation);
 
   } catch (error) {
