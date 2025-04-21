@@ -17,11 +17,11 @@ Selected text of screenshot AI translation companion
   node ./src/translate-buffer.ts
   ```
 
-## How to use LibreTranslate local models
+## How to use LibreTranslate local models (not recommended)
 
 - clone repo locally: `git clone https://github.com/LibreTranslate/LibreTranslate.git`
 - replace 5000 with 9012 everywhere
-- use folofing docker compose:
+- use following docker compose:
 
   ```yaml
   services:
@@ -49,6 +49,6 @@ Selected text of screenshot AI translation companion
 
 - build it with: `docker build -t libretranslate/libretranslate:latest -f ./docker/arm.Dockerfile .`
 - run it with: `./run.sh`
-- set in `config/default.json` `provider: libre-translate`
+- in `config/default.json` set `provider: libre-translate`
 
 **Notes**: Translation speed is 2x higher than OpenAi and quality is 2-3 time worse than OpenAI GPT3.5 ¯\(ツ)/¯
