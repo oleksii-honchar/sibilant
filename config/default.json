@@ -4,17 +4,16 @@
       "type": "cloud",
       "title": "OpenAI Translator",
       "apiKey": "<your-openai-api-key>",
-      "model": "gpt-3.5-turbo"
+      "model": "gpt-4o-mini"
     },
     "libre-translate": {
       "type": "local",
       "title": "LibreTranslate",
-      "baseUrl": "http://localhost:9012",
-      "apiKey": ""
+      "baseUrl": "http://localhost:9012"
     }
   },
   "translation": {
     "provider": "open-ai",
-    "targetLanguage": "uk"
+    "targetLanguage": "ukrainian"
   }
 }

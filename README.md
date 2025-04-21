@@ -2,19 +2,30 @@
 
 Selected text of screenshot AI translation companion
 
+## Prerequisites
+
+- nvm
+- Alfred with workflows
+- brew packages: `brew install pngpaste`
+- `npm i -g pnpm; pnpm i`
+
 ## Using Alfred workflow
 
-- Create new workflow
+- Create new workflow (or import from [file](src/sibilant.alfredworkflow))
 - Pick "Hotkey", enable "Selection in MacOs"  - this will make text selection in any current app available for Alfred
+- Add "Runscript" - for image in clipboard case
+- Add Conditional block: `should_copy = true`
 - Add "Copy to clipboard"
 - Add "Runscript"
 - Add Play Sound in parallel to "Runscript"
+
+The script for Runscript block:
 
   ```bash
   #!/bin/bash
   export PATH="/Users/$(whoami)/.nvm/versions/node/v23.11.0/bin:$PATH"
   cd /Volumes/Data/www/beaver/sibilant
-  node ./src/translate-buffer.ts
+  pnpm start
   ```
 
 ## How to use LibreTranslate local models (not recommended)

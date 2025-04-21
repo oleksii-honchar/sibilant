@@ -10,8 +10,10 @@
   },
   "dependencies": {
     "@dotenvx/dotenvx": "^1.41.0",
+    "@napi-rs/clipboard": "^1.1.2",
     "@types/config": "^3.3.5",
     "@types/node": "^22.14.1",
+    "axios": "^1.8.4",
     "clipboardy": "^4.0.0",
     "config": "^3.3.12",
     "i": "^0.3.7",

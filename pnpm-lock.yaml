@@ -11,6 +11,9 @@ importers:
       '@dotenvx/dotenvx':
         specifier: ^1.41.0
         version: 1.41.0
+      '@napi-rs/clipboard':
+        specifier: ^1.1.2
+        version: 1.1.2
       '@types/config':
         specifier: ^3.3.5
         version: 3.3.5
@@ -50,6 +53,70 @@ packages:
     engines: {bun: '>=1', deno: '>=2', node: '>=16'}
     peerDependencies:
       '@noble/ciphers': ^1.0.0
+
+  '@napi-rs/clipboard-darwin-arm64@1.1.2':
+    resolution: {integrity: sha512-PNNM+RVE2KMCMjYhzohAA5kvV+qyxdpByHqvzuqvVoD9tFpCOCQrnFX8yRDXrf5O55Stj39amN3p1Q67TxWRLw==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@napi-rs/clipboard-darwin-x64@1.1.2':
+    resolution: {integrity: sha512-Htz6x1MZ/Z0n30uYW2e09lfOwyTHDJgYnBLIi7+iMnwuKN+AN3YpVCDLkaq2xzMndov2Zf9bVC1XE/c0ExCovQ==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@napi-rs/clipboard-linux-arm-gnueabihf@1.1.2':
+    resolution: {integrity: sha512-pJJMQzdUSL6VeYO6Hc6vQTmDbeV71BEpcOCaD2fxrGfL7I2tW3FDnl5b3AAqyeeVGelPvBqZXf98J4uiLwaaWA==}
+    engines: {node: '>= 10'}
+    cpu: [arm]
+    os: [linux]
+
+  '@napi-rs/clipboard-linux-arm64-gnu@1.1.2':
+    resolution: {integrity: sha512-/d4FJKnZ/hva7cBUSBv4DxkffBzTPGkjXG7YQwxRyic4CKfCeMdvEqg2t13spDBXlQYl1KXGGSfzdM1r3hR6AQ==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [linux]
+
+  '@napi-rs/clipboard-linux-arm64-musl@1.1.2':
+    resolution: {integrity: sha512-J8xzr9x3Wn9O3Tvb088mV/IxfIW1WK2WyOT1FvTGbpw+mpAzICJxDfEHkL3MBxV4w3JZXteGIEcU3xkC1XlrWA==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [linux]
+
+  '@napi-rs/clipboard-linux-x64-gnu@1.1.2':
+    resolution: {integrity: sha512-FwgiM/8uHbwJjy0yGKFAbrMu10oDeXA9zU+xQZ2R7NyLe9exHUk6/KgMNrUUr+eIJnkirGy0N77VorXjAtFUVA==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+
+  '@napi-rs/clipboard-linux-x64-musl@1.1.2':
+    resolution: {integrity: sha512-3tMmRhpVb7iYWkEzobdoEpzFDGqNdtHP/LwLJYZOKreOBI8GszEIshbtjXIFhAfpD+x3RvjXiFowzNChX+CGNw==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+
+  '@napi-rs/clipboard-win32-arm64-msvc@1.1.2':
+    resolution: {integrity: sha512-hFJQwQdLz8C/ocG5FjbKM0/+OxdnaaLOdUFWZaSa69s6XcF53U5uTvTUlmKhMNuqllqf9V3R3bF5Ada7yeuWlg==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [win32]
+
+  '@napi-rs/clipboard-win32-ia32-msvc@1.1.2':
+    resolution: {integrity: sha512-ZI3dbHhf0zVIYJDF4G3lGlJSUQgliGgfDWc+1SEKgjIEmmX3cBh/vaL2N9hpNh5LyNk+RBMD/+N7hOG1/e6UJw==}
+    engines: {node: '>= 10'}
+    cpu: [ia32]
+    os: [win32]
+
+  '@napi-rs/clipboard-win32-x64-msvc@1.1.2':
+    resolution: {integrity: sha512-8dNtCAD6X7FaLrC4XBqp5ySU4PGB22Dpy0bGiPBOVNw8W9zw3EhtE0yNnGao03c4k/06GOOoFPeobWQfcja+hw==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [win32]
+
+  '@napi-rs/clipboard@1.1.2':
+    resolution: {integrity: sha512-q2AR+5XLWcUGoF5LVEc0kpm2tGRFnYPSNRO9Klhbw0BloyciicrGwMMO4khcQV5EIpYlmj9GEGfLoi/uWtE0DA==}
+    engines: {node: '>= 10'}
 
   '@noble/ciphers@1.2.1':
     resolution: {integrity: sha512-rONPWMC7PeExE077uLE4oqWrZ1IvAfz3oH9LibVAcVCopJiA9R62uavnbEzdkVmJYI6M6Zgkbeb07+tWjlq2XA==}
@@ -536,6 +603,49 @@ snapshots:
   '@ecies/ciphers@0.2.3(@noble/ciphers@1.2.1)':
     dependencies:
       '@noble/ciphers': 1.2.1
+
+  '@napi-rs/clipboard-darwin-arm64@1.1.2':
+    optional: true
+
+  '@napi-rs/clipboard-darwin-x64@1.1.2':
+    optional: true
+
+  '@napi-rs/clipboard-linux-arm-gnueabihf@1.1.2':
+    optional: true
+
+  '@napi-rs/clipboard-linux-arm64-gnu@1.1.2':
+    optional: true
+
+  '@napi-rs/clipboard-linux-arm64-musl@1.1.2':
+    optional: true
+
+  '@napi-rs/clipboard-linux-x64-gnu@1.1.2':
+    optional: true
+
+  '@napi-rs/clipboard-linux-x64-musl@1.1.2':
+    optional: true
+
+  '@napi-rs/clipboard-win32-arm64-msvc@1.1.2':
+    optional: true
+
+  '@napi-rs/clipboard-win32-ia32-msvc@1.1.2':
+    optional: true
+
+  '@napi-rs/clipboard-win32-x64-msvc@1.1.2':
+    optional: true
+
+  '@napi-rs/clipboard@1.1.2':
+    optionalDependencies:
+      '@napi-rs/clipboard-darwin-arm64': 1.1.2
+      '@napi-rs/clipboard-darwin-x64': 1.1.2
+      '@napi-rs/clipboard-linux-arm-gnueabihf': 1.1.2
+      '@napi-rs/clipboard-linux-arm64-gnu': 1.1.2
+      '@napi-rs/clipboard-linux-arm64-musl': 1.1.2
+      '@napi-rs/clipboard-linux-x64-gnu': 1.1.2
+      '@napi-rs/clipboard-linux-x64-musl': 1.1.2
+      '@napi-rs/clipboard-win32-arm64-msvc': 1.1.2
+      '@napi-rs/clipboard-win32-ia32-msvc': 1.1.2
+      '@napi-rs/clipboard-win32-x64-msvc': 1.1.2
 
   '@noble/ciphers@1.2.1': {}
 
