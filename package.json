@@ -1,0 +1,23 @@
+{
+  "type": "module",
+  "scripts": {
+    "clean": "rm -rf dist && rm -rf node_modules",
+    "clean:dist": "rm -rf dist",
+    "dotenvx": "dotenvx run --env-file ./.env",
+    "fetch-models": "node scripts/get-avalable-openai-models.ts",
+    "sort-package-json": "npx sort-package-json",
+    "start": "pnpm run dotenvx -- node src/translate-buffer.ts"
+  },
+  "dependencies": {
+    "@dotenvx/dotenvx": "^1.41.0",
+    "@types/config": "^3.3.5",
+    "@types/node": "^22.14.1",
+    "clipboardy": "^4.0.0",
+    "config": "^3.3.12",
+    "i": "^0.3.7",
+    "node-notifier": "^10.0.1",
+    "npm": "^11.3.0",
+    "openai": "^4.95.1"
+  },
+  "packageManager": "pnpm@10.8.1"
+}
