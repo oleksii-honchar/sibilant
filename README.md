@@ -8,6 +8,7 @@ Selected text of screenshot AI translation companion
 - Pick "Hotkey", enable "Selection in MacOs"  - this will make text selection in any current app available for Alfred
 - Add "Copy to clipboard"
 - Add "Runscript"
+- Add Play Sound in parallel to "Runscript"
 
   ```bash
   #!/bin/bash
