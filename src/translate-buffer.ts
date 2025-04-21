@@ -21,21 +21,11 @@ import { promisify } from 'util';
 
 const execAsync = promisify(exec);
 
-interface OpenAIConfig {
-  type: 'cloud';
+interface ProviderConfig {
+  type: string;
   title: string;
-  apiKey: string;
-  model: string;
+  [key: string]: any;
 }
-
-interface LocalTranslateConfig {
-  type: 'local';
-  title: string;
-  command: string;
-  args: string[];
-}
-
-type ProviderConfig = OpenAIConfig | LocalTranslateConfig;
 
 interface ProvidersConfig {
   [key: string]: ProviderConfig;
@@ -53,16 +43,37 @@ interface AppConfig {
 
 interface TranslationProvider {
   translate(text: string, targetLanguage: string): Promise<string>;
+  playSound(soundFile: string): Promise<void>;
 }
 
-class OpenAITranslationProvider implements TranslationProvider {
-  private readonly config: OpenAIConfig;
+abstract class BaseTranslationProvider implements TranslationProvider {
+  protected readonly config: ProviderConfig;
 
-  constructor(config: OpenAIConfig) {
+  constructor(config: ProviderConfig) {
     this.config = config;
   }
 
+  async playSound(soundFile: string): Promise<void> {
+    try {
+      await execAsync(`afplay /System/Library/Sounds/${soundFile}.aiff`);
+    } catch (error) {
+      console.warn(`[${this.config.title}] Failed to play sound ${soundFile}:`, error);
+    }
+  }
+
+  abstract translate(text: string, targetLanguage: string): Promise<string>;
+}
+
+class OpenAITranslationProvider extends BaseTranslationProvider {
+  constructor(config: ProviderConfig) {
+    super(config);
+  }
+
   async translate(text: string, targetLanguage: string): Promise<string> {
+    const startTime = Date.now();
+    console.log(`[${this.config.title}] Starting translation to ${targetLanguage}...`);
+    console.log(`[${this.config.title}] Using model: ${this.config.model}`);
+
     const client = new OpenAI({
       apiKey: this.config.apiKey,
     });
@@ -82,33 +93,78 @@ class OpenAITranslationProvider implements TranslationProvider {
       throw new Error('No translation found in the response');
     }
 
+    const duration = Date.now() - startTime;
+    console.log(`[${this.config.title}] Translation completed in ${duration}ms`);
+    console.log(`[${this.config.title}] Input length: ${text.length} chars`);
+    console.log(`[${this.config.title}] Output length: ${translation.length} chars`);
+
     return translation;
   }
 }
 
-class LocalTranslationProvider implements TranslationProvider {
-  private readonly config: LocalTranslateConfig;
+class LibreTranslateProvider extends BaseTranslationProvider {
+  constructor(config: ProviderConfig) {
+    super(config);
+  }
 
-  constructor(config: LocalTranslateConfig) {
-    this.config = config;
+  private async checkHealth(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.config.baseUrl}/languages`);
+      return response.ok;
+    } catch (error) {
+      console.error(`[${this.config.title}] Health check failed:`, error);
+      return false;
+    }
   }
 
   async translate(text: string, targetLanguage: string): Promise<string> {
+    const startTime = Date.now();
+    console.log(`[${this.config.title}] Starting translation to ${targetLanguage}...`);
+    console.log(`[${this.config.title}] Using endpoint: ${this.config.baseUrl}`);
+
     try {
-      const args = this.config.args.map(arg =>
-        arg.replace('{text}', text)
-          .replace('{targetLanguage}', targetLanguage)
-      );
+      // Check service health
+      console.log(`[${this.config.title}] Checking service health...`);
+      const isHealthy = await this.checkHealth();
+      if (!isHealthy) {
+        await this.playSound('Sosumi');
+        throw new Error('Service is not available. Please make sure the service is running on port 9012.');
+      }
+      console.log(`[${this.config.title}] Service is healthy`);
 
-      const { stdout, stderr } = await execAsync(`${this.config.command} ${args.join(' ')}`);
+      const response = await fetch(`${this.config.baseUrl}/translate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(this.config.apiKey && { 'Authorization': `Bearer ${this.config.apiKey}` })
+        },
+        body: JSON.stringify({
+          q: text,
+          source: 'auto',
+          target: targetLanguage,
+          format: 'text'
+        })
+      });
 
-      if (stderr) {
-        console.warn(`Translation CLI (${this.config.title}) stderr:`, stderr);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`API error: ${response.statusText}${errorData.error ? ` - ${errorData.error}` : ''}`);
       }
 
-      return stdout.trim();
+      const data = await response.json();
+      if (!data.translatedText) {
+        throw new Error('No translation found in the response');
+      }
+
+      const duration = Date.now() - startTime;
+      console.log(`[${this.config.title}] Translation completed in ${duration}ms`);
+      console.log(`[${this.config.title}] Input length: ${text.length} chars`);
+      console.log(`[${this.config.title}] Output length: ${data.translatedText.length} chars`);
+
+      return data.translatedText;
     } catch (error) {
-      console.error(`Error executing translation CLI (${this.config.title}):`, error);
+      const duration = Date.now() - startTime;
+      console.error(`[${this.config.title}] Translation failed after ${duration}ms:`, error);
       throw new Error(`Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -124,9 +180,9 @@ function createTranslationProvider(translationConfig: TranslationConfig): Transl
 
   switch (translationConfig.provider) {
     case 'open-ai':
-      return new OpenAITranslationProvider(provider as OpenAIConfig);
-    case 'local-translate':
-      return new LocalTranslationProvider(provider as LocalTranslateConfig);
+      return new OpenAITranslationProvider(provider as ProviderConfig);
+    case 'libre-translate':
+      return new LibreTranslateProvider(provider as ProviderConfig);
     default:
       throw new Error(`Unsupported provider: ${translationConfig.provider}`);
   }
@@ -161,22 +217,32 @@ async function showNotification(title: string, message: string) {
 }
 
 async function translateText() {
+  const startTime = Date.now();
   try {
-    await execAsync('afplay /System/Library/Sounds/Purr.aiff');
-
     const translationConfig = config.get<TranslationConfig>('translation');
+    const providers = config.get<ProvidersConfig>('providers');
+    const provider = providers[translationConfig.provider];
+
+    console.log(`[Sibilant] Using provider: ${provider.title} (${translationConfig.provider})`);
+    console.log(`[Sibilant] Target language: ${translationConfig.targetLanguage}`);
+
     const text = await clipboardy.read();
-    const provider = createTranslationProvider(translationConfig);
-    const translation = await provider.translate(text, translationConfig.targetLanguage);
+    console.log(`[Sibilant] Clipboard content length: ${text.length} chars`);
+
+    const translationProvider = createTranslationProvider(translationConfig);
+    const translation = await translationProvider.translate(text, translationConfig.targetLanguage);
 
     await clipboardy.write(translation);
-    console.log('Translation copied to clipboard:', translation);
+    console.log('[Sibilant] Translation copied to clipboard');
 
-    await execAsync('afplay /System/Library/Sounds/Hero.aiff');
     await showNotification('Translation Complete', translation);
 
+    const totalDuration = Date.now() - startTime;
+    console.log(`[Sibilant] Total operation completed in ${totalDuration}ms`);
+
   } catch (error) {
-    console.error('Error translating text:', error);
+    const duration = Date.now() - startTime;
+    console.error(`[Sibilant] Operation failed after ${duration}ms:`, error);
     await showNotification('Translation Error', error instanceof Error ? error.message : 'Unknown error occurred');
     throw error;
   }

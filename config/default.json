@@ -6,20 +6,15 @@
       "apiKey": "<your-openai-api-key>",
       "model": "gpt-3.5-turbo"
     },
-    "local-translate": {
+    "libre-translate": {
       "type": "local",
-      "title": "Local Translator",
-      "command": "/path/to/translation-cli",
-      "args": [
-        "--input",
-        "{text}",
-        "--target",
-        "{targetLanguage}"
-      ]
+      "title": "LibreTranslate",
+      "baseUrl": "http://localhost:9012",
+      "apiKey": ""
     }
   },
   "translation": {
     "provider": "open-ai",
-    "targetLanguage": "ua"
+    "targetLanguage": "uk"
   }
 }
